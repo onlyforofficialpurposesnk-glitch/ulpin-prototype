@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / Pylance / Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Pytest / Testing / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Data rules
+data/processed/
+*.las
+*.laz
+*.npy
+*.npz
+
+# Keep data/raw tracked
+!data/raw/
+!data/raw/**
+
+# Postgres Docker local volume / data (if created locally)
+postgres_data/
+pgdata/
+.pgdata/
+
+# OS / Editor files
+.DS_Store
+.vscode/
+.idea/

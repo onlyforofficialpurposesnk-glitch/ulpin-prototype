@@ -1,0 +1,17 @@
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+pydantic-settings>=2.2.0
+sqlalchemy>=2.0.28
+geoalchemy2>=0.14.4
+psycopg2-binary>=2.9.9
+shapely>=2.0.3
+pyproj>=3.6.1
+ifcopenshell>=0.7.0.240301; python_version < '3.12'
+trimesh>=4.2.0
+numpy>=1.26.0
+cjio>=0.8.3
+requests>=2.31.0
+pytest>=8.1.0
+pytest-asyncio>=0.23.5
+httpx>=0.27.0
