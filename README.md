@@ -5,6 +5,8 @@ Demo prototype for SIH 2026 problem SIH26011: **3D ULPIN Generation and Vertical
 ## Overview
 This system ingests BIM/IFC models (buildingSMART Duplex Apartment IFC), places them on real-world mock land parcels, constructs topologically valid 3D closed solids per unit, mints hierarchical 3D Unique Land Parcel Identification Numbers (ULPINs), manages ownership lifecycle (transfers, mergers), flags plan vs. as-built discrepancies, and visualizes the vertical properties in CesiumJS with CityJSON export capability.
 
+*Note: The ULPIN check character catches 100% of single-character substitutions and approximately 97.9% of adjacent transpositions, per the known mathematical properties of ISO/IEC 7064 MOD 37,36.*
+
 ## Project Structure
 ```text
 .
