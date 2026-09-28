@@ -32,6 +32,7 @@ def clean_tables(db_conn):
     """Clean all tables before each test to guarantee isolation."""
     with db_conn:
         with db_conn.cursor() as cur:
+            cur.execute("DELETE FROM discrepancy;")
             cur.execute("DELETE FROM rrr;")
             cur.execute("DELETE FROM adjacency;")
             cur.execute("DELETE FROM spatial_unit;")

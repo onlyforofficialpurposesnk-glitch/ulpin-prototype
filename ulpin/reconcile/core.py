@@ -20,7 +20,7 @@ def reconcile_building(building_id: str, observed_pts: np.ndarray) -> Dict[str, 
         
         # 1. Fetch declared units and building data
         cur.execute("""
-            SELECT footprint_utm, ground_z, z_sigma
+            SELECT ST_AsText(footprint_utm), ground_z, z_sigma
             FROM building WHERE id = %s
         """, (building_id,))
         b_res = cur.fetchone()
@@ -29,7 +29,7 @@ def reconcile_building(building_id: str, observed_pts: np.ndarray) -> Dict[str, 
         b_footprint_utm_wkt, b_ground_z, b_z_sigma = b_res
         
         cur.execute("""
-            SELECT ulpin_3d, footprint_utm, z_min, z_max, z_sigma
+            SELECT ulpin_3d, ST_AsText(footprint_utm), z_min, z_max, z_sigma
             FROM spatial_unit
             WHERE building_id = %s AND status = 'active'
         """, (building_id,))
@@ -164,7 +164,7 @@ def reconcile_building(building_id: str, observed_pts: np.ndarray) -> Dict[str, 
             INSERT INTO discrepancy (id, building_id, class, extra_volume_m3, evidence_path)
             VALUES (%s, %s, %s, %s, %s)
             RETURNING id
-        """, (record_id, building_id, classification, extra_volume_m3, evidence_path))
+        """, (record_id, building_id, classification, float(extra_volume_m3), evidence_path))
         
         # 7. Save evidence PNG
         # top view of extra voxels over footprint

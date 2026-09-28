@@ -92,7 +92,7 @@ def main():
     building_id = res[0]
     
     cur.execute("""
-        SELECT ulpin_3d, ST_AsText(solid)
+        SELECT ulpin_3d, ST_AsText(footprint_utm), z_min, z_max
         FROM spatial_unit
         WHERE building_id = %s AND status = 'active'
     """, (building_id,))
@@ -100,9 +100,26 @@ def main():
     units = cur.fetchall()
     all_points = []
     
-    for uid, solid_wkt in units:
-        surface = wkt.loads(solid_wkt)
-        for poly in surface.geoms:
+    for uid, fp_wkt, z_min, z_max in units:
+        fp = wkt.loads(fp_wkt)
+        coords = list(fp.exterior.coords)
+        # Bottom and top horizontal faces
+        bottom_poly = Polygon([(x, y, z_min) for x, y in coords])
+        top_poly = Polygon([(x, y, z_max) for x, y in coords])
+        faces = [bottom_poly, top_poly]
+        # Vertical wall faces
+        for i in range(len(coords) - 1):
+            p1, p2 = coords[i], coords[i+1]
+            wall_poly = Polygon([
+                (p1[0], p1[1], z_min),
+                (p2[0], p2[1], z_min),
+                (p2[0], p2[1], z_max),
+                (p1[0], p1[1], z_max),
+                (p1[0], p1[1], z_min),
+            ])
+            faces.append(wall_poly)
+
+        for poly in faces:
             pts = generate_points_on_polygon(poly, density=50)
             if len(pts) > 0:
                 all_points.append(pts)

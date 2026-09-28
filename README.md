@@ -1,55 +1,87 @@
 # 3D ULPIN Generation and Vertical Property Mapping
 
-Demo prototype for SIH 2026 problem SIH26011: **3D ULPIN Generation and Vertical Property Mapping**.
+An end-to-end cadastral system for ingesting BIM/IFC models, georeferencing to land parcels, constructing validated 3D closed solids, minting hierarchical 3D ULPINs, managing bitemporal rights, detecting plan-vs-as-built discrepancies, and visualizing in 3D CesiumJS and CityJSON.
 
-## Overview
-This system ingests BIM/IFC models (buildingSMART Duplex Apartment IFC), places them on real-world mock land parcels, constructs topologically valid 3D closed solids per unit, mints hierarchical 3D Unique Land Parcel Identification Numbers (ULPINs), manages ownership lifecycle (transfers, mergers), flags plan vs. as-built discrepancies, and visualizes the vertical properties in CesiumJS with CityJSON export capability.
+---
 
-*Note: The ULPIN check character catches 100% of single-character substitutions and approximately 97.9% of adjacent transpositions, per the known mathematical properties of ISO/IEC 7064 MOD 37,36.*
+## Architecture Summary
 
-## Project Structure
-```text
-.
-├── PROJECT_CONTEXT.md      # Rules and operational specifications
-├── README.md               # Project overview and setup
-├── docker-compose.yml      # PostgreSQL 16 + PostGIS 3 service
-├── requirements.txt        # Python 3.11 dependencies
-├── data/
-│   ├── raw/                # Tracked raw input data (e.g. IFC models, parcel boundaries)
-│   └── processed/          # Derived models and meshes (ignored in VCS)
-├── scripts/                # Data retrieval and ingestion helper scripts
-├── ulpin/                  # Core library
-│   ├── ingest/             # IFC parsing & entity extraction
-│   ├── georef/             # Georeferencing & coordinate transformations
-│   ├── solids/             # 3D solid construction & geometry processing
-│   ├── validate/           # Solid validity, overlap, and containment checks
-│   ├── idgen/              # 3D ULPIN minting logic
-│   ├── lifecycle/          # Unit ownership transfer, subdivision & merger history
-│   ├── reconcile/          # Plan vs. as-built discrepancy detection
-│   └── export/             # CityJSON & 3D visualization exporter
-├── api/                    # FastAPI backend endpoints
-├── web/                    # Static CesiumJS 3D viewer (no build step)
-├── db/                     # SQL schema migrations & spatial indexes
-└── tests/                  # Pytest automated test suites
+```
+Parcel (2D WGS-84 / UTM)
+   └── Building (Ground footprint, ground Z, datum_source, z_sigma)
+          └── Spatial Unit (Floor-solid PolyhedralSurfaceZ, Level, Space Type, Dwelling Group)
+                 └── 3D ULPIN (22-char: Parent Parcel ULPIN + Building + Level + Sequence + Space Type + Check Char)
 ```
 
-## Quick Start
+- **Cadastral Hierarchy**:
+  - **`parcel`**: 14-character alphanumeric Indian ULPIN boundary in EPSG:4326 with owner metadata.
+  - **`building`**: Georeferenced similarity-transformed building footprint with elevation datum and uncertainty (`z_sigma`).
+  - **`spatial_unit`**: Registrable 3D spatial unit representing individual floor-solids (`PolyhedralSurfaceZ` in UTM, bounds, centroid, fidelity).
+  - **`ulpin_3d`**: Base-34 encoded hierarchical identifier with ISO/IEC 7064 MOD 37,36 error-detecting check character.
+- **Bitemporal Integrity**:
+  - `spatial_unit` and `rrr` (Rights, Restrictions, Responsibilities) track both valid time (`valid_from` / `valid_to`) and transaction/system recording time (`recorded_from` / `recorded_to`).
+  - Business records are never destructively mutated or deleted; records are retired and new records inserted.
+- **Hash-Chained Audit Trail**:
+  - Every lifecycle event (registration, transfer, merger) appends an entry to `lineage` and writes a SHA-256 hash-chained block to `audit_log`.
+- **Validation Gate**:
+  - Pure-Python geometric checks (ST_CoveredBy containment within parcel and building footprint, zero volumetric overlap, and floor/wall adjacency validation).
+- **As-Built Reconciliation**:
+  - LiDAR/point-cloud comparison against declared solids using boolean voxel occupancy grids (0.5 m resolution), concave hull IoU, and connected-component rule filtering.
+- **CityJSON 2.0 Export**:
+  - Compliant CityJSON 2.0 LoD1 export (`Building` -> `BuildingStorey` -> `BuildingUnit` -> `Solid`).
 
-### 1. Database Setup
-Start PostGIS in Docker:
+---
+
+## Exact Steps to Run the Demo Locally
+
+### 1. Start Database
+Launch PostgreSQL 16 + PostGIS 3 in Docker:
 ```bash
 docker compose up -d
 ```
 
-### 2. Python Environment
-Requires Python 3.11.
+### 2. Set Up Virtual Environment & Dependencies
+Requires Python 3.11:
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Running Tests
+### 3. Reset Demo & Run Ingestion Pipeline
+Execute the all-in-one reset script to wipe schema, run migrations, georeference the duplex, mint 3D ULPINs, and run as-built reconciliation:
 ```bash
-pytest -q -x --tb=short
+./scripts/reset_demo.sh
+```
+*(Alternatively on Windows/cross-platform: `python scripts/reset_demo.py`)*
+
+### 4. Start FastAPI Backend
+Run the REST API service on `http://localhost:8000`:
+```bash
+uvicorn api.main:app --reload --port 8000
+```
+Interactive Swagger API docs available at: `http://localhost:8000/docs`.
+
+### 5. Open CesiumJS 3D Viewer
+In a separate terminal, serve the static viewer directory:
+```bash
+python -m http.server 8080 --directory viewer
+```
+Open your browser at:
+`http://localhost:8080` (or directly open `viewer/index.html` in your browser).
+
+---
+
+## Running Automated Tests
+
+Run the full regression and end-to-end test suite:
+```bash
+pytest -q tests/
+```
+
+Or run individual targeted modules:
+```bash
+pytest -q -x --tb=short tests/test_e2e.py
+pytest -q -x --tb=short tests/test_viewer_contract.py
+pytest -q -x --tb=short tests/test_api.py
 ```
