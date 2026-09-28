@@ -39,23 +39,20 @@ def generate_points(z_max, with_tank=False, with_extra_storey=False):
         points.append(np.array([[c[0], c[1], z_max]]))
         
     # 2. Dense perimeter sampling at top and bottom
-    for i in range(101):
-        t = i / 100.0 * 10
+    for t in np.linspace(0, 10, 500):
         # Bottom perimeter
         points.append(np.array([[t, 0, 0.0], [t, 10, 0.0], [0, t, 0.0], [10, t, 0.0]]))
         # Top perimeter
         points.append(np.array([[t, 0, z_max], [t, 10, z_max], [0, t, z_max], [10, t, z_max]]))
 
-    # top uniform
-    xs = np.random.uniform(0, 10, 500)
-    ys = np.random.uniform(0, 10, 500)
-    points.append(np.column_stack((xs, ys, np.full(500, z_max))))
+    # top dense grid from 0 to 10
+    gx, gy = np.meshgrid(np.linspace(0, 10, 41), np.linspace(0, 10, 41))
+    points.append(np.column_stack((gx.ravel(), gy.ravel(), np.full(gx.size, z_max))))
     
-    # walls uniform
-    points.append(np.column_stack((np.full(100, 0), np.random.uniform(0, 10, 100), np.random.uniform(0, z_max, 100))))
-    points.append(np.column_stack((np.full(100, 10), np.random.uniform(0, 10, 100), np.random.uniform(0, z_max, 100))))
-    points.append(np.column_stack((np.random.uniform(0, 10, 100), np.full(100, 0), np.random.uniform(0, z_max, 100))))
-    points.append(np.column_stack((np.random.uniform(0, 10, 100), np.full(100, 10), np.random.uniform(0, z_max, 100))))
+    # walls
+    for t in np.linspace(0, 10, 50):
+        for z in np.linspace(0, z_max, 15):
+            points.append(np.array([[0.0, t, z], [10.0, t, z], [t, 0.0, z], [t, 10.0, z]]))
     
     if with_tank:
         # tank of 1.2m at (5,5)
@@ -87,3 +84,29 @@ def test_extra_storey(mock_db):
     pts = generate_points(3.0, with_extra_storey=True)
     res = reconcile_building(b_id, pts)
     assert res["class"] == "extra_storey"
+
+def test_illegal_extension_3x3x3(mock_db):
+    """A 3m x 3m x 3m synthetic illegal extension (9 m2 area, 3m height) must classify as extra_storey."""
+    pts = generate_points(3.0)
+    # 3m x 3m extension on roof at [2, 5] x [2, 5], z from 3.0 to 6.0 (area = 9m2, height = 3m)
+    ext_pts = []
+    gx, gy = np.meshgrid(np.linspace(2.1, 4.9, 15), np.linspace(2.1, 4.9, 15))
+    ext_pts.append(np.column_stack((gx.ravel(), gy.ravel(), np.full(gx.size, 6.0))))
+    z_w = np.random.uniform(3.0, 6.0, 100)
+    ext_pts.append(np.column_stack((np.full(100, 2.0), np.random.uniform(2.0, 5.0, 100), z_w)))
+    ext_pts.append(np.column_stack((np.full(100, 5.0), np.random.uniform(2.0, 5.0, 100), z_w)))
+    ext_pts.append(np.column_stack((np.random.uniform(2.0, 5.0, 100), np.full(100, 2.0), z_w)))
+    ext_pts.append(np.column_stack((np.random.uniform(2.0, 5.0, 100), np.full(100, 5.0), z_w)))
+    all_pts = np.vstack([pts, np.vstack(ext_pts)])
+    
+    res = reconcile_building(b_id, all_pts)
+    assert res["class"] == "extra_storey"
+    assert res["extra_volume_m3"] > 0
+
+def test_missing_volume_not_built(mock_db):
+    """A synthetic case with a chunk of declared volume missing (drop points for one exterior wall section) must classify as not_built."""
+    pts = generate_points(3.0)
+    # Drop points for an exterior wall section (e.g. drop points where x > 5, leaving half the building missing)
+    missing_pts = pts[pts[:, 0] <= 5.0]
+    res = reconcile_building(b_id, missing_pts)
+    assert res["class"] == "not_built"

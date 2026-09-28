@@ -123,16 +123,16 @@ def reconcile_building(building_id: str, observed_pts: np.ndarray) -> Dict[str, 
                     obs_grid[i, j, z_mask] = True
 
         extra_voxels = obs_grid & ~decl_grid
+        missing_voxels = decl_grid & ~obs_grid
         
         # 5. Rule filter for extra volume
-        labeled, num_features = label(extra_voxels)
-        
+        labeled_extra, num_extra_features = label(extra_voxels)
         valid_extra_voxels = np.zeros_like(extra_voxels)
         extra_volume_m3 = 0.0
-        classification = "match"
+        has_major_extra = False
         
-        for comp in range(1, num_features + 1):
-            mask = (labeled == comp)
+        for comp in range(1, num_extra_features + 1):
+            mask = (labeled_extra == comp)
             # Find bounding box in indices
             z_indices = np.where(np.any(mask, axis=(0, 1)))[0]
             if len(z_indices) == 0:
@@ -143,18 +143,42 @@ def reconcile_building(building_id: str, observed_pts: np.ndarray) -> Dict[str, 
             xy_mask = np.any(mask, axis=2)
             area = np.sum(xy_mask) * (voxel_size ** 2)
             
-            if height >= 2.5 and area >= 10.0:
+            # Flagged if EITHER height >= 2.5 OR area >= 10.0
+            if height >= 2.5 or area >= 10.0:
                 valid_extra_voxels |= mask
                 extra_volume_m3 += np.sum(mask) * (voxel_size ** 3)
-                classification = "extra_storey"
-                
-        # If no extra storey, check horizontal
-        if classification == "match" and iou < 0.9:
+                has_major_extra = True
+
+        # Rule filter for missing volume
+        labeled_missing, num_missing_features = label(missing_voxels)
+        missing_volume_m3 = 0.0
+        has_major_missing = False
+
+        for comp in range(1, num_missing_features + 1):
+            mask = (labeled_missing == comp)
+            z_indices = np.where(np.any(mask, axis=(0, 1)))[0]
+            if len(z_indices) == 0:
+                continue
+            height = (z_indices[-1] - z_indices[0] + 1) * voxel_size
+
+            xy_mask = np.any(mask, axis=2)
+            area = np.sum(xy_mask) * (voxel_size ** 2)
+
+            if height >= 2.5 or area >= 10.0:
+                has_major_missing = True
+                missing_volume_m3 += np.sum(mask) * (voxel_size ** 3)
+
+        # Classification decision
+        if has_major_extra:
+            classification = "extra_storey"
+        elif has_major_missing:
+            classification = "not_built"
+        elif iou < 0.9:
             classification = "horizontal_extension"
-            
-        # If match but some volume diff within tolerance
-        if classification == "match" and extra_volume_m3 > 0:
+        elif np.sum(extra_voxels) > 0 or np.sum(missing_voxels) > 0:
             classification = "within_tolerance"
+        else:
+            classification = "match"
             
         # 6. Write discrepancy record
         record_id = str(uuid.uuid4())
