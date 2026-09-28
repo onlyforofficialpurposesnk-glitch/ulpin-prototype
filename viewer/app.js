@@ -121,6 +121,22 @@ function initCesium() {
   document.getElementById("btnCloseModal").addEventListener("click", () => {
     document.getElementById("unitModal").style.display = "none";
   });
+
+  const dataSourceModal = document.getElementById("dataSourceModal");
+  const btnDataSource = document.getElementById("btnDataSource");
+  const btnCloseDataSource = document.getElementById("btnCloseDataSource");
+
+  if (btnDataSource && dataSourceModal) {
+    btnDataSource.addEventListener("click", () => {
+      dataSourceModal.style.display = dataSourceModal.style.display === "block" ? "none" : "block";
+    });
+  }
+
+  if (btnCloseDataSource && dataSourceModal) {
+    btnCloseDataSource.addEventListener("click", () => {
+      dataSourceModal.style.display = "none";
+    });
+  }
 }
 
 /**
@@ -411,4 +427,42 @@ async function fetchUnitDetails(ulpin_3d) {
 window.addEventListener("DOMContentLoaded", () => {
   initCesium();
   loadUnits();
+  loadSourceMetadata();
 });
+
+/**
+ * Attempt to load data/raw/SOURCES.json if served from repo root or relative path
+ */
+async function loadSourceMetadata() {
+  const possiblePaths = ["data/raw/SOURCES.json", "../data/raw/SOURCES.json"];
+  for (const path of possiblePaths) {
+    try {
+      const res = await fetch(path);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.filename) {
+          const fnEl = document.getElementById("srcFilename");
+          if (fnEl) fnEl.textContent = data.filename;
+        }
+        if (data.source_url) {
+          const urlEl = document.getElementById("srcUrl");
+          if (urlEl) {
+            urlEl.href = data.source_url;
+            urlEl.textContent = data.source_url;
+          }
+        }
+        if (data.license) {
+          const licEl = document.getElementById("srcLicense");
+          if (licEl) licEl.textContent = data.license;
+        }
+        if (data.sha256) {
+          const shaEl = document.getElementById("srcSha256");
+          if (shaEl) shaEl.textContent = data.sha256;
+        }
+        break;
+      }
+    } catch (_) {
+      // Fallback values are already hardcoded in DOM
+    }
+  }
+}

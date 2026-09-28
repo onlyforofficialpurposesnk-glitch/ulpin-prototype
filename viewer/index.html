@@ -231,7 +231,7 @@
     #loadingIndicator {
       position: absolute;
       bottom: 24px;
-      right: 16px;
+      right: 170px;
       background: rgba(15, 23, 42, 0.8);
       padding: 8px 14px;
       border-radius: 6px;
@@ -239,6 +239,47 @@
       color: #94a3b8;
       z-index: 99;
       display: none;
+    }
+
+    /* Data Source Button & Panel */
+    #btnDataSource {
+      position: absolute;
+      bottom: 24px;
+      right: 60px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #94a3b8;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      z-index: 99;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    #btnDataSource:hover {
+      color: #38bdf8;
+      border-color: #38bdf8;
+      background: rgba(30, 41, 59, 0.95);
+    }
+    #dataSourceModal {
+      position: absolute;
+      bottom: 64px;
+      right: 24px;
+      width: 360px;
+      max-width: calc(100vw - 48px);
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     }
   </style>
 </head>
@@ -284,6 +325,47 @@
     </div>
     <div id="modalContent">
       <!-- Injected by app.js -->
+    </div>
+  </div>
+
+  <!-- Data Source Button & Provenance Modal -->
+  <button id="btnDataSource" title="View Data Source Provenance">Data Source</button>
+
+  <div id="dataSourceModal">
+    <div class="modal-header">
+      <div class="modal-title">Data Source Provenance</div>
+      <button id="btnCloseDataSource" class="close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-row">
+        <div class="detail-label">Model Source</div>
+        <div class="detail-value">buildingSMART Duplex Apartment IFC test model</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Source File</div>
+        <div class="detail-value" id="srcFilename">Duplex_A_20110907.ifc</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">Source Repository & URL</div>
+        <div class="detail-value">
+          <a id="srcUrl" href="https://media.githubusercontent.com/media/buildingsmart-community/Community-Sample-Test-Files/main/IFC%202.3.0.1%20(IFC%202x3)/Duplex%20Apartment/Duplex_A_20110907.ifc" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: underline; font-size: 0.76rem; word-break: break-all;">
+            buildingSMART IFC 2x3 Duplex Apartment
+          </a>
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">License</div>
+        <div class="detail-value" id="srcLicense">CC BY 4.0, credit original authors (buildingSMART)</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">SHA-256 Hash</div>
+        <div class="ulpin-tag" id="srcSha256" style="font-size: 0.68rem; word-break: break-all;">b347a2c8aa8fff6db896a4417a9c50c22ac0ccd7c5cfc22b99b8d29336c606ed</div>
+      </div>
+      <div class="detail-row" style="margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <div class="detail-value" style="color: #34d399; font-size: 0.8rem; font-weight: 500;">
+          Real-world BIM input, not synthetic data
+        </div>
+      </div>
     </div>
   </div>
 
