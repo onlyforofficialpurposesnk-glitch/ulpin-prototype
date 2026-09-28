@@ -1,0 +1,133 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "metadata": {
+    "center_lat": 12.9715987,
+    "center_lon": 77.5945627,
+    "utm_crs": "EPSG:32643"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "P1",
+      "properties": {
+        "parcel_id": "P1",
+        "ulpin": "28KA0410840001",
+        "owner": "Ramesh Sharma",
+        "area_sqm": 1200.0,
+        "width_m": 30.0,
+        "depth_m": 40.0
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.594699,
+              12.9714167
+            ],
+            [
+              77.5947027,
+              12.971778
+            ],
+            [
+              77.5944264,
+              12.9717807
+            ],
+            [
+              77.5944227,
+              12.9714194
+            ],
+            [
+              77.594699,
+              12.9714167
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "P2",
+      "properties": {
+        "parcel_id": "P2",
+        "ulpin": "28KA0410840002",
+        "owner": "Sunita Verma",
+        "area_sqm": 1200.0,
+        "width_m": 30.0,
+        "depth_m": 40.0
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.5949753,
+              12.9714139
+            ],
+            [
+              77.5949791,
+              12.9717752
+            ],
+            [
+              77.5947027,
+              12.971778
+            ],
+            [
+              77.594699,
+              12.9714167
+            ],
+            [
+              77.5949753,
+              12.9714139
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "P3",
+      "properties": {
+        "parcel_id": "P3",
+        "ulpin": "28KA0410840003",
+        "owner": "Arun Patel",
+        "area_sqm": 1200.0,
+        "width_m": 30.0,
+        "depth_m": 40.0
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.5947027,
+              12.971778
+            ],
+            [
+              77.5947065,
+              12.9721393
+            ],
+            [
+              77.5944302,
+              12.9721421
+            ],
+            [
+              77.5944264,
+              12.9717807
+            ],
+            [
+              77.5947027,
+              12.971778
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
