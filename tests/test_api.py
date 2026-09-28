@@ -37,6 +37,7 @@ def clean_db(db_init):
     conn = get_db_connection()
     with conn:
         with conn.cursor() as cur:
+            cur.execute("DELETE FROM discrepancy;")
             cur.execute("DELETE FROM rrr;")
             cur.execute("DELETE FROM adjacency;")
             cur.execute("DELETE FROM spatial_unit;")

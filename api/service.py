@@ -334,6 +334,7 @@ def get_unit_detail(
                 "unit_seq": seq,
                 "space_type": stype,
                 "dwelling_group": dwell,
+                "owner": current_rights[0]["party_name"] if current_rights else "Unknown",
                 "z_min": z_min,
                 "z_max": z_max,
                 "datum_source": datum,

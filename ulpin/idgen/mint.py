@@ -72,14 +72,15 @@ def get_db_connection(
 
 
 def ensure_schema(conn: psycopg2.extensions.connection) -> None:
-    """Ensure db/001_schema.sql tables exist in database."""
-    schema_path = Path(__file__).resolve().parent.parent.parent / "db" / "001_schema.sql"
-    if schema_path.exists():
-        with open(schema_path, "r", encoding="utf-8") as f:
-            sql = f.read()
-        with conn.cursor() as cur:
+    """Ensure db/*.sql tables exist in database."""
+    db_dir = Path(__file__).resolve().parent.parent.parent / "db"
+    sql_files = sorted(db_dir.glob("*.sql"))
+    with conn.cursor() as cur:
+        for sql_file in sql_files:
+            with open(sql_file, "r", encoding="utf-8") as f:
+                sql = f.read()
             cur.execute(sql)
-        conn.commit()
+    conn.commit()
 
 
 def assign_level_sequences_and_ids(
