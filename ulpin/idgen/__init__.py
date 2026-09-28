@@ -9,6 +9,13 @@ from .core import (
     sequence_units,
     morton_encode,
 )
+from .mint import (
+    assign_level_sequences_and_ids,
+    ensure_schema,
+    get_db_connection,
+    mint_building,
+    mint_duplex,
+)
 
 __all__ = [
     "encode_b34",
@@ -20,4 +27,10 @@ __all__ = [
     "get_reference_point",
     "sequence_units",
     "morton_encode",
+    "assign_level_sequences_and_ids",
+    "ensure_schema",
+    "get_db_connection",
+    "mint_building",
+    "mint_duplex",
 ]
+
