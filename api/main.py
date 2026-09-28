@@ -23,6 +23,7 @@ from api.service import (
     verify_audit_log,
 )
 from ulpin.export.cityjson import export_cityjson
+from api.routes_reconcile import router as reconcile_router
 
 logger = logging.getLogger(__name__)
 
@@ -206,3 +207,4 @@ def export_building_cityjson(building_id: str) -> Dict[str, Any]:
     except Exception as e:
         logger.exception(f"Export CityJSON failed: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+app.include_router(reconcile_router)
